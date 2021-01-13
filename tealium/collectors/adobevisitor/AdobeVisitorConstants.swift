@@ -48,5 +48,6 @@ enum AdobeStringConstants: String {
 
 public enum AdobeVisitorError: Error {
     case missingExperienceCloudID
+    case missingOrgID
     case invalidJSON
 }

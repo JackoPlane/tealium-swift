@@ -11,6 +11,7 @@ import TealiumCollect
 import TealiumCore
 import TealiumLifecycle
 import TealiumVisitorService
+import TealiumAdobeVisitorAPI
 #if os(iOS)
 import TealiumAttribution
 import TealiumLocation
@@ -52,6 +53,7 @@ class TealiumHelper  {
         config.timedEventTriggers = [TimedEventTrigger(start: "product_view", end: "order_complete"),
                                      TimedEventTrigger(start: "start_game", end: "buy_coins")]
 
+        config.adobeOrgId = "1E2D776A524450EE0A490D44@AdobeOrg"
         #if os(iOS)
             config.collectors = [
                 Collectors.Attribution,
@@ -60,7 +62,8 @@ class TealiumHelper  {
                 Collectors.Connectivity,
                 Collectors.Device,
                 Collectors.Location,
-                Collectors.VisitorService
+                Collectors.VisitorService,
+                Collectors.AdobeVisitorAPI
             ]
         
             config.dispatchers = [
