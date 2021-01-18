@@ -124,7 +124,7 @@ public class HostedDataLayer: HostedDataLayerProtocol {
                     return
                 }
                 if current < maxRetries {
-                    TealiumQueues.backgroundSerialQueue.asyncAfter(deadline: .now() + Double(Int.random(in: 10...30))) {
+                    TealiumQueues.backgroundSerialQueue.asyncAfter(deadline: .now() + Double.random(in: 10.0...30.0)) {
                         self.retrieveAndRetry(url: url, dispatch: dispatch, itemId: itemId, maxRetries: maxRetries, current: current + 1)
                     }
                 } else {

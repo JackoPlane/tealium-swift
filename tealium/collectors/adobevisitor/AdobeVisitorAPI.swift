@@ -6,7 +6,6 @@
 //  Copyright © 2021 Tealium, Inc. All rights reserved.
 //
 
-
 // 3 use cases:
 // 1/ Already have an MID (initialize with MID), but need to link MID with a custom identifier (e.g. email or other ID)
 // 2/ Do not have an MID and need to generate it
@@ -16,21 +15,8 @@
 //https://docs.adobe.com/content/help/en/id-service/using/implementation/direct-integration-examples.html
 // https://github.com/Adobe-Marketing-Cloud/audiencemanager-profilelink
 
-// Remote Command/Module funcationality:
+// Remote Command/Module functionality:
 // TODO: Support re-synchronization interval based on TTL returned from Adobe
-// TODO: Save ECID response to persistent storage
-// TODO: This needs to run before the first request is sent to Adobe Analytics
-    // Possible solutions:
-    // - Set minimum acceptable keys required on each request in DispatchQueue module. If keys not present, calls are queued until they are.
-    // - Implement this as a module that reads remote JSON config, rather than a remote command
-    // - Allow this to be used standalone
-
-// todo: make module for main library - only supports spm
-// make package.swift for new repo - spm dependency
-// update package.swift
-// make built-in remote command with new module
-// config methods to set adobe visitor service stuff
-// module remains standalone way to retrieve vid using swift
 
 
 import Foundation

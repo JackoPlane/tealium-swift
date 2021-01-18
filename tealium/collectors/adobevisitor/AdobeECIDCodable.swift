@@ -14,7 +14,10 @@ public struct AdobeExperienceCloudID: Codable {
     public var dcsRegion: String?
     public var blob: String?
     public var nextRefresh: Date?
-
+    public var isEmpty: Bool {
+        experienceCloudID == nil && idSyncTTL == nil && dcsRegion == nil && blob == nil && nextRefresh == nil
+    }
+    
     enum CodingKeys: String, CodingKey {
         case experienceCloudID = "d_mid"
         case idSyncTTL = "id_sync_ttl"
@@ -23,6 +26,17 @@ public struct AdobeExperienceCloudID: Codable {
         case blob = "d_blob"
     }
 
+    init?(experienceCloudID: String?, idSyncTTL: String?, dcsRegion: String?, blob: String?, nextRefresh: Date?) {
+        guard let ecId = experienceCloudID else {
+            return nil
+        }
+        self.experienceCloudID = ecId
+        self.idSyncTTL = idSyncTTL
+        self.dcsRegion = dcsRegion
+        self.blob = blob
+        self.nextRefresh = nextRefresh
+    }
+    
     static func initWithDictionary(_ dict: [String: Any]) -> AdobeExperienceCloudID? {
         var adobeValues = [String: String]()
         for (key, value) in dict {

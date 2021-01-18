@@ -21,6 +21,7 @@ public struct TealiumAdobeVisitorConstants {
     public static let adobeOrgIdSuffix = "@AdobeOrg"
     public static let adobeEcid = "adobe_ecid"
     public static let moduleName = "adobevisitor"
+    public static let retries = "retries"
 }
 
 
@@ -94,6 +95,16 @@ public extension TealiumConfig {
         
         set {
             options[TealiumAdobeVisitorConstants.adobeCustomVisitorId] = newValue
+        }
+    }
+    
+    var adobeRetries: Int {
+        get {
+            options[TealiumAdobeVisitorConstants.retries] as? Int ?? 5
+        }
+        
+        set {
+            options[TealiumAdobeVisitorConstants.retries] = newValue
         }
     }
     
