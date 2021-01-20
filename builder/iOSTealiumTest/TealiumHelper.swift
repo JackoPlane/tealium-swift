@@ -34,6 +34,7 @@ class TealiumHelper  {
                                    environment: "dev",
                                    dataSource: "test12",
                                    options: nil)
+        config.adobeExistingECID = "690123807842311696822835353724641694002"
         config.connectivityRefreshInterval = 5
         config.loggerType = .os
         config.logLevel = .info
@@ -152,11 +153,13 @@ class TealiumHelper  {
     }
 
     func track(title: String, data: [String: Any]?) {
+        tealium?.adobeVisitor?.resetECID()
         let dispatch = TealiumEvent(title, dataLayer: data)
         tealium?.track(dispatch)
     }
 
     func trackView(title: String, data: [String: Any]?) {
+        tealium?.adobeVisitor?.refreshECID()
         let dispatch = TealiumView(title, dataLayer: data)
         tealium?.track(dispatch)
 
@@ -203,7 +206,14 @@ extension TealiumHelper: DispatchValidator {
     }
 
     func shouldQueue(request: TealiumRequest) -> (Bool, [String: Any]?) {
-        (false, nil)
+        guard let req = request as? TealiumTrackRequest else {
+            return (false, nil)
+        }
+        var newDict = req.trackDictionary
+        let cats = newDict["consent_categories"]
+        newDict["consent_categories"] = nil
+        newDict["cons"] = cats
+        return(false, newDict)
     }
 
     func shouldDrop(request: TealiumRequest) -> Bool {
@@ -263,4 +273,8 @@ class MyCustomDispatcher: Dispatcher {
             return
         }
     }
+}
+
+struct consentP: TealiumConsentPolicy {
+    
 }

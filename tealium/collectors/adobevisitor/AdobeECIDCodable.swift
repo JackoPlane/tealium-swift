@@ -43,6 +43,9 @@ public struct AdobeExperienceCloudID: Codable {
             adobeValues[key] = "\(value)"
         }
         let ecID = adobeValues[AdobeVisitorKeys.experienceCloudId.rawValue]
+        if ecID == "<null>" {
+            return nil
+        }
         let idSyncTTL = adobeValues[AdobeVisitorKeys.idSyncTTL.rawValue]
         
         let nextRefresh = getFutureDate(adding: idSyncTTL)

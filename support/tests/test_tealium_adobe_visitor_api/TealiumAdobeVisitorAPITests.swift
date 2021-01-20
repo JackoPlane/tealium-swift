@@ -31,6 +31,18 @@ struct AdobeVisitorAPITestHelpers {
         }
         return nil
     }
+    
+    public static var testJSONDataEmptyECID: Data? {
+        let dictionary = [
+            "dcs_region": "6",
+            "id_sync_ttl": "604800",
+            "d_blob": "wxyz5432"
+        ]
+        if let json = try? JSONSerialization.data(withJSONObject: dictionary, options: []) {
+            return json
+        }
+        return nil
+    }
 }
 
 
@@ -45,6 +57,45 @@ class MockNetworkSessionVisitorSuccess: NetworkSession {
     }
 
     func invalidateAndClose() {}
+    
+    func reset() {
+        
+    }
+}
+
+
+class MockNetworkSessionVisitorSuccessEmptyECID: NetworkSession {
+    func loadData(from request: URLRequest,
+                  completionHandler: @escaping (NetworkResult) -> Void) {
+        if let url = request.url,
+           let response = HTTPURLResponse(url: url, statusCode: 200, httpVersion: "1.1", headerFields: [:]),
+           let data = AdobeVisitorAPITestHelpers.testJSONDataEmptyECID {
+            completionHandler(.success((response, data)))
+        }
+    }
+
+    func invalidateAndClose() {}
+    
+    func reset() {
+        
+    }
+}
+
+class MockNetworkSessionVisitorFailure: NetworkSession {
+    func loadData(from request: URLRequest,
+                  completionHandler: @escaping (NetworkResult) -> Void) {
+        if let url = request.url,
+           let response = HTTPURLResponse(url: url, statusCode: 200, httpVersion: "1.1", headerFields: [:]),
+           let data = AdobeVisitorAPITestHelpers.getTestJSONData() {
+            completionHandler(.success((response, data)))
+        }
+    }
+
+    func invalidateAndClose() {}
+    
+    func reset() {
+        
+    }
 }
 
 class TealiumAdobeVisitorAPITests: XCTestCase {
@@ -76,7 +127,7 @@ class TealiumAdobeVisitorAPITests: XCTestCase {
         let adobeVisitorAPI = AdobeVisitorAPI.init(networkSession: MockNetworkSessionVisitorSuccess(),
                                                    adobeOrgId: AdobeVisitorAPITestHelpers.adobeOrgId)
 
-        adobeVisitorAPI.getNewAdobeECID() { result in
+        adobeVisitorAPI.getNewECID() { result in
             switch result {
             case .success(let result):
                 XCTAssertEqual(result.experienceCloudID, AdobeVisitorAPITestHelpers.ecID, "Unexpected mismatch in Adobe ECIDs")

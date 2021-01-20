@@ -34,6 +34,10 @@ extension URLSession: NetworkSession {
     public func invalidateAndClose() {
         self.finishTasksAndInvalidate()
     }
+    
+    public func reset() {
+        self.reset(completionHandler: {})
+    }
 }
 
 
@@ -43,6 +47,8 @@ public protocol NetworkSession {
                   completionHandler: @escaping (NetworkResult) -> Void)
 
     func invalidateAndClose()
+    
+    func reset()
 }
 
 

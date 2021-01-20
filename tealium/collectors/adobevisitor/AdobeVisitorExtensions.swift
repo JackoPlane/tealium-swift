@@ -16,6 +16,7 @@ public extension Collectors {
 public struct TealiumAdobeVisitorConstants {
     public static let adobeOrgId = "adobe_org_id"
     public static let adobeCustomVisitorId = "adobe_custom_visitor_id"
+    public static let adobeExistingECID = "adobe_existing_ecid"
     public static let adobeDataProviderId = "adobe_data_provider_id"
     public static let adobeAuthState = "adobe_auth_state"
     public static let adobeOrgIdSuffix = "@AdobeOrg"
@@ -95,6 +96,16 @@ public extension TealiumConfig {
         
         set {
             options[TealiumAdobeVisitorConstants.adobeCustomVisitorId] = newValue
+        }
+    }
+    
+    var adobeExistingECID: String? {
+        get {
+            options[TealiumAdobeVisitorConstants.adobeExistingECID] as? String
+        }
+        
+        set {
+            options[TealiumAdobeVisitorConstants.adobeExistingECID] = newValue
         }
     }
     

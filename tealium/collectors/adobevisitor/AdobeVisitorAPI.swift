@@ -168,7 +168,7 @@ public class AdobeVisitorAPI {
 
     /// Requests a new Adobe ECID from the Adobe Visitor API
     /// - Parameter completion: `AdobeCompletion` to be called when the new ID is returned from the Adobe Visitor API
-    public func getNewAdobeECID(completion: @escaping AdobeCompletion) {
+    public func getNewECID(completion: @escaping AdobeCompletion) {
         if let url = getNewUserAdobeIdURL(withAdobeOrgId: adobeOrgId) {
             sendRequest(url: url) { result in
                 // attempt to store current state in memory
@@ -176,6 +176,11 @@ public class AdobeVisitorAPI {
                 completion(result)
             }
         }
+    }
+    
+    /// Resets the URLSession to delete cookies
+    public func resetSession() {
+        networkSession.reset()
     }
     
     /// Requests a new Adobe ECID from the Adobe Visitor API
@@ -235,7 +240,7 @@ public class AdobeVisitorAPI {
                                   authState: AdobeVisitorAuthState?,
                                   completion: AdobeCompletion?) {
 
-            getNewAdobeECID { result in
+            getNewECID { result in
                 switch result {
                 case .success(let result):
                     guard let experienceCloudID = result.experienceCloudID  else {
