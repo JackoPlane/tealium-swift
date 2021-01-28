@@ -27,23 +27,28 @@ public typealias AdobeCompletion = ((AdobeResult) -> Void)
 
 
 public protocol AdobeExperienceCloudIDService {
-    func getNewAdobeECID(withAdobeOrgId: String)
-
-    func linkExistingECIDToKnownIdentifier(existingID: String,
-                                           adobeDataProviderID: String,
-                                           experienceCloudID: String,
-                                           authState: AdobeVisitorAuthState?)
-
-    func getNewIDAndLink(adobeOrgId: String,
-                         existingID: String,
-                         adobeDataProviderID: String,
-                         experienceCloudID: String,
-                         authState: AdobeVisitorAuthState?,
-                         completion: AdobeCompletion)
+    func getNewECID(completion: @escaping AdobeCompletion)
+    
+    func getNewECIDAndLink(customVisitorId: String,
+                                  dataProviderId: String,
+                                  authState: AdobeVisitorAuthState?,
+                                  completion: AdobeCompletion?)
+    
+    func linkExistingECIDToKnownIdentifier(customVisitorId: String,
+                                                      dataProviderID: String,
+                                                      experienceCloudId: String,
+                                                      authState: AdobeVisitorAuthState?,
+                                                      completion: AdobeCompletion?)
+    
+    func refreshECID(existingECID: String,
+                                completion: @escaping AdobeCompletion)
+    
+    func resetSession()
+    
 }
 
 
-public class AdobeVisitorAPI {
+public class AdobeVisitorAPI: AdobeExperienceCloudIDService {
 
     var experienceCloudId: AdobeExperienceCloudID?
     var networkSession: NetworkSession

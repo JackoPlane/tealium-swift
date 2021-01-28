@@ -541,6 +541,9 @@
 		D7C8EED1223A957A008FB02B /* AttributionConstants.swift in Sources */ = {isa = PBXBuildFile; fileRef = D7C8EECF223A957A008FB02B /* AttributionConstants.swift */; };
 		D7C8EED4223A9956008FB02B /* AttributionData.swift in Sources */ = {isa = PBXBuildFile; fileRef = D7C8EED2223A9956008FB02B /* AttributionData.swift */; };
 		D7C8EED7223AA2C1008FB02B /* AttributionDataProtocol.swift in Sources */ = {isa = PBXBuildFile; fileRef = D7C8EED5223AA2C1008FB02B /* AttributionDataProtocol.swift */; };
+		D7CC2A0225C050FE00C9CEE0 /* TestTealiumHelper.swift in Sources */ = {isa = PBXBuildFile; fileRef = 716C7D1B1DDBC3A500512C99 /* TestTealiumHelper.swift */; };
+		D7CC2A2525C0525B00C9CEE0 /* CoreMocks.swift in Sources */ = {isa = PBXBuildFile; fileRef = CFA558BF24E4E6B200BFBED8 /* CoreMocks.swift */; };
+		D7CC2A4825C0526600C9CEE0 /* MockSessionStarter.swift in Sources */ = {isa = PBXBuildFile; fileRef = D7187F1A24768F5000CF0AB0 /* MockSessionStarter.swift */; };
 		D7CCB57522C65B0600FF1103 /* TealiumDiskStorageConfig.swift in Sources */ = {isa = PBXBuildFile; fileRef = D7CCB57322C65B0500FF1103 /* TealiumDiskStorageConfig.swift */; };
 		D7CED26721932DF200ACD291 /* AutotrackingModule.swift in Sources */ = {isa = PBXBuildFile; fileRef = 71D2B34E1E2FE3670049BCF3 /* AutotrackingModule.swift */; };
 		D7CED26821932DF200ACD291 /* UIApplication+TealiumTracker.m in Sources */ = {isa = PBXBuildFile; fileRef = 71D2B3501E2FE3670049BCF3 /* UIApplication+TealiumTracker.m */; };
@@ -4695,7 +4698,10 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				D7CC2A2525C0525B00C9CEE0 /* CoreMocks.swift in Sources */,
 				D719EA9625B70AB4004DB5E2 /* AdobeVisitorModuleTests.swift in Sources */,
+				D7CC2A0225C050FE00C9CEE0 /* TestTealiumHelper.swift in Sources */,
+				D7CC2A4825C0526600C9CEE0 /* MockSessionStarter.swift in Sources */,
 				D7D0335925AF147900473C38 /* TealiumAdobeVisitorAPITests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

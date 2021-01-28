@@ -9,10 +9,33 @@
 import Foundation
 import TealiumCore
 
+public protocol Retryable {
+    init(queue: DispatchQueue,
+         delay: TimeInterval?)
+    func submit(completion: @escaping ()-> Void)
+}
+
+class RetryManager: Retryable {
+    var queue: DispatchQueue
+    var delay: TimeInterval?
+    required init(queue: DispatchQueue, delay: TimeInterval?) {
+        self.queue = queue
+        self.delay = delay
+    }
+    
+    func submit(completion: @escaping () -> Void) {
+        if let delay = delay {
+            queue.asyncAfter(deadline: .now() + delay, execute: completion)
+        } else {
+            queue.async {
+                completion()
+            }
+        }
+    }
+}
 
 public class TealiumAdobeVisitorAPI: Collector {
 
-    
     
     public var id = "TealiumAdobeVisitorAPI"
     
@@ -41,7 +64,7 @@ public class TealiumAdobeVisitorAPI: Collector {
         }
     }
     
-    var visitorAPI: AdobeVisitorAPI?
+    var visitorAPI: AdobeExperienceCloudIDService?
     
     var error: Error? {
         willSet {
@@ -56,6 +79,7 @@ public class TealiumAdobeVisitorAPI: Collector {
     }
     
     var delegate: ModuleDelegate?
+    var retryManager: Retryable
     
     public required convenience init(context: TealiumContext, delegate: ModuleDelegate?, diskStorage: TealiumDiskStorageProtocol?, completion: ((Result<Bool, Error>, [String : Any]?)) -> Void) {
         self.init(context:context, delegate: delegate, diskStorage: diskStorage, adobeVisitorAPI: nil, completion: completion)
@@ -64,9 +88,11 @@ public class TealiumAdobeVisitorAPI: Collector {
     init(context: TealiumContext,
                   delegate: ModuleDelegate?,
                   diskStorage: TealiumDiskStorageProtocol?,
-                  adobeVisitorAPI: AdobeVisitorAPI? = nil,
+                  retryManager: Retryable? = nil,
+                  adobeVisitorAPI: AdobeExperienceCloudIDService? = nil,
                   completion: ((Result<Bool, Error>, [String : Any]?)) -> Void) {
         
+        self.retryManager = retryManager ?? RetryManager(queue: TealiumQueues.backgroundSerialQueue, delay: Double.random(in: 10.0...30.0))
         self.config = context.config
         self.delegate = delegate
         guard let orgId = config.adobeOrgId else {
@@ -78,7 +104,7 @@ public class TealiumAdobeVisitorAPI: Collector {
         visitorAPI = adobeVisitorAPI ?? AdobeVisitorAPI(adobeOrgId: orgId, enableCookies: true)
         if let existingId = config.adobeExistingECID {
             self.ecID = AdobeExperienceCloudID(experienceCloudID: existingId, idSyncTTL: nil, dcsRegion: nil, blob: nil, nextRefresh: nil)
-            refreshECID()
+            refreshECID(ecID: ecID)
         }
         if let ecID = getECIDFromDisk() {
             self.ecID = ecID
@@ -98,7 +124,7 @@ public class TealiumAdobeVisitorAPI: Collector {
         if let ecID = diskStorage?.retrieve(as: AdobeExperienceCloudID.self), !ecID.isEmpty {
             delegate?.requestDequeue(reason: "Adobe Visitor ID Retrieved Successfully")
             if let nextRefresh = ecID.nextRefresh, Date() >= nextRefresh || ecID.nextRefresh == nil {
-                refreshECID()
+                refreshECID(ecID: ecID)
             }
             return ecID
         }
@@ -123,7 +149,7 @@ public class TealiumAdobeVisitorAPI: Collector {
                 self.ecID = ecID
             case .failure(let error):
                 if retries < self.config.adobeRetries {
-                    TealiumQueues.backgroundSerialQueue.asyncAfter(deadline: .now() + Double.random(in: 10.0...30.0)) {
+                    self.retryManager.submit {
                         self.getECID(retries: retries + 1)
                     }
                 } else {
@@ -146,7 +172,7 @@ public class TealiumAdobeVisitorAPI: Collector {
                 self.ecID = ecID
             case .failure(let error):
                 if retries < self.config.adobeRetries {
-                    TealiumQueues.backgroundSerialQueue.asyncAfter(deadline: .now() + Double.random(in: 10.0...30.0)) {
+                    self.retryManager.submit {
                         self.getAndLink(customVisitorId: customVisitorId, dpId: dpId, authState:authState, retries: retries + 1)
                     }
                 } else {
@@ -162,20 +188,7 @@ public class TealiumAdobeVisitorAPI: Collector {
             return
         }
         guard let experienceCloudId = self.ecID?.experienceCloudID else {
-            visitorAPI.getNewECIDAndLink(customVisitorId: knownId, dataProviderId: dpId, authState: config.adobeAuthState) { result in
-                switch result {
-                case .success(let ecID):
-                    self.ecID = ecID
-                case .failure(let error):
-                    if retries < self.config.adobeRetries {
-                        TealiumQueues.backgroundSerialQueue.asyncAfter(deadline: .now() + Double.random(in: 10.0...30.0)) {
-                            self.linkECIDToKnownIdentifier(knownId: knownId, retries: retries + 1)
-                        }
-                    } else {
-                        self.error = error
-                    }
-                }
-            }
+            getAndLink(customVisitorId: knownId, dpId: dpId, authState: config.adobeAuthState)
             return
         }
         
@@ -185,7 +198,7 @@ public class TealiumAdobeVisitorAPI: Collector {
                  self.ecID = ecID
             case .failure(let error):
                 if retries < self.config.adobeRetries {
-                    TealiumQueues.backgroundSerialQueue.asyncAfter(deadline: .now() + Double.random(in: 10.0...30.0)) {
+                    self.retryManager.submit {
                         self.linkECIDToKnownIdentifier(knownId: knownId, retries: retries + 1)
                     }
                 } else {
@@ -196,7 +209,8 @@ public class TealiumAdobeVisitorAPI: Collector {
     }
     
     /// Sends a refresh request to the Adobe Visitor API. Used if the TTL has expired.
-    public func refreshECID(retries: Int = 0) {
+    public func refreshECID(retries: Int = 0,
+                            ecID: AdobeExperienceCloudID?) {
         guard let visitorAPI = visitorAPI, let existingECID = ecID?.experienceCloudID else {
             return
         }
@@ -206,8 +220,8 @@ public class TealiumAdobeVisitorAPI: Collector {
                 self.ecID = ecID
             case .failure(let error):
                 if retries < self.config.adobeRetries {
-                    TealiumQueues.backgroundSerialQueue.asyncAfter(deadline: .now() + Double.random(in: 10.0...30.0)) {
-                        self.refreshECID(retries: retries + 1)
+                    self.retryManager.submit {
+                        self.refreshECID(retries: retries + 1, ecID: ecID)
                     }
                 } else {
                     self.error = error

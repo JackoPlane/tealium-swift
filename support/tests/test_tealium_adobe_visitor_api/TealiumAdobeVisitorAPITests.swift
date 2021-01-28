@@ -84,11 +84,7 @@ class MockNetworkSessionVisitorSuccessEmptyECID: NetworkSession {
 class MockNetworkSessionVisitorFailure: NetworkSession {
     func loadData(from request: URLRequest,
                   completionHandler: @escaping (NetworkResult) -> Void) {
-        if let url = request.url,
-           let response = HTTPURLResponse(url: url, statusCode: 200, httpVersion: "1.1", headerFields: [:]),
-           let data = AdobeVisitorAPITestHelpers.getTestJSONData() {
-            completionHandler(.success((response, data)))
-        }
+        completionHandler(.failure(AdobeVisitorError.missingOrgID))
     }
 
     func invalidateAndClose() {}
@@ -106,18 +102,6 @@ class TealiumAdobeVisitorAPITests: XCTestCase {
 
     override func tearDownWithError() throws {
         // Put teardown code here. This method is called after the invocation of each test method in the class.
-    }
-
-    func testExample() throws {
-        // This is an example of a functional test case.
-        // Use XCTAssert and related functions to verify your tests produce the correct results.
-    }
-
-    func testPerformanceExample() throws {
-        // This is an example of a performance test case.
-        measure {
-            // Put the code you want to measure the time of here.
-        }
     }
     
     func testGenerateECID() {
@@ -196,8 +180,25 @@ class TealiumAdobeVisitorAPITests: XCTestCase {
 
         self.wait(for: [expectation], timeout: 10.0)
 
+    }
+    
+    func testRefreshECID() {
+        let expectation = self.expectation(description: "Refresh")
 
+        let adobeVisitorAPI = AdobeVisitorAPI(networkSession: MockNetworkSessionVisitorSuccess(),
+                                              adobeOrgId: AdobeVisitorAPITestHelpers.adobeOrgId)
 
+        adobeVisitorAPI.refreshECID(
+                existingECID: AdobeVisitorAPITestHelpers.testVisitorId) { result in
+            switch result {
+            case .success:
+                expectation.fulfill()
+            case .failure (let error):
+                XCTFail("Unexpected failure when retrieving ECID: \(error.localizedDescription)")
+            }
+        }
+
+        self.wait(for: [expectation], timeout: 10.0)
     }
 
     func testDecodeECIDJSON() {

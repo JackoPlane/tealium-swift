@@ -43,6 +43,9 @@ class TealiumHelper  {
         config.dispatchListeners = [self]
         config.dispatchValidators = [self]
         config.shouldUseRemotePublishSettings = false
+//        DispatchQueue.main.asyncAfter(deadline: .now() + 10) {
+//            NSException(name: NSExceptionName(rawValue: "test"), reason: nil, userInfo: nil).raise()
+//        }
         // config.batchingEnabled = true
         // config.batchSize = 5
         config.memoryReportingEnabled = true
@@ -64,7 +67,7 @@ class TealiumHelper  {
                 Collectors.Device,
                 Collectors.Location,
                 Collectors.VisitorService,
-                Collectors.AdobeVisitorAPI
+//                Collectors.AdobeVisitorAPI
             ]
         
             config.dispatchers = [
@@ -159,7 +162,7 @@ class TealiumHelper  {
     }
 
     func trackView(title: String, data: [String: Any]?) {
-        tealium?.adobeVisitor?.refreshECID()
+//        tealium?.adobeVisitor?.refreshECID()
         let dispatch = TealiumView(title, dataLayer: data)
         tealium?.track(dispatch)
 
@@ -274,7 +277,7 @@ class MyCustomDispatcher: Dispatcher {
         }
     }
 }
-
-struct consentP: TealiumConsentPolicy {
-    
-}
+//
+//struct consentP: TealiumConsentPolicy {
+//
+//}

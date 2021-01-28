@@ -87,7 +87,7 @@ public class LifecycleModule: Collector {
     ///     - autotracked: `Bool` indicates whether or not the lifecycle call was autotracked
     public func process(type: LifecycleType,
                         at date: Date, autotracked: Bool = false) {
-        guard var lifecycle = self.lifecycle else {
+            guard var lifecycle = self.lifecycle else {
             return
         }
 
