@@ -42,11 +42,6 @@ class TealiumHelper  {
         config.dispatchListeners = [self]
         config.dispatchValidators = [self]
         config.shouldUseRemotePublishSettings = false
-//        DispatchQueue.main.asyncAfter(deadline: .now() + 10) {
-//            NSException(name: NSExceptionName(rawValue: "test"), reason: nil, userInfo: nil).raise()
-//        }
-        // config.batchingEnabled = true
-        // config.batchSize = 5
         config.memoryReportingEnabled = true
         config.diskStorageEnabled = true
         config.visitorServiceDelegate = self
