@@ -2,7 +2,6 @@
 //  TealiumDiskStorageConfig.swift
 //  tealium-swift
 //
-//  Created by Craig Rouse on 28/06/2019.
 //  Copyright © 2019 Tealium, Inc. All rights reserved.
 //
 

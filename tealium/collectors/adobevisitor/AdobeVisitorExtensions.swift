@@ -2,7 +2,6 @@
 //  AdobeVisitorExtensions.swift
 //  TealiumAdobeVisitorAPI
 //
-//  Created by Craig Rouse on 13/01/2021.
 //  Copyright © 2021 Tealium, Inc. All rights reserved.
 //
 
@@ -10,7 +9,7 @@ import Foundation
 import TealiumCore
 
 public extension Collectors {
-    static let AdobeVisitorAPI = TealiumAdobeVisitorAPI.self
+    static let AdobeVisitorAPI = TealiumAdobeVisitorModule.self
 }
 
 public struct TealiumAdobeVisitorConstants {
@@ -29,45 +28,13 @@ public struct TealiumAdobeVisitorConstants {
 public extension Tealium {
     
     /// - Returns: `TealiumTagManagementProtocol` (`WKWebView` for iOS11+)
-    var adobeVisitor: TealiumAdobeVisitorAPI? {
+    var adobeVisitorAPI: TealiumAdobeVisitorModule? {
         let module = zz_internal_modulesManager?.modules.first {
-            $0 is TealiumAdobeVisitorAPI
+            $0 is TealiumAdobeVisitorModule
         }
 
-        return (module as? TealiumAdobeVisitorAPI)
+        return (module as? TealiumAdobeVisitorModule)
     }
-//
-//    /// Resets the Adobe Experience Cloud ID. A new ID will be requested on any subsequent track calls
-//    func adobe_resetECID() {
-//
-//        if let module = modulesManager.getModule(forName: TealiumAdobeVisitorConstants.moduleName) as? AdobeVisitorServiceModule {
-//            module.resetECID()
-//        }
-//    }
-//
-//    func adobe_linkECIDToKnownIdentifier(_ id: String) {
-//        if let module = modulesManager.getModule(forName: TealiumAdobeVisitorConstants.moduleName) as? AdobeVisitorServiceModule {
-//            module.linkECIDToKnownIdentifier(knownId: id)
-//        }
-//    }
-//
-//    func adobe_refreshECID() {
-//        if let module = modulesManager.getModule(forName: TealiumAdobeVisitorConstants.moduleName) as? AdobeVisitorServiceModule {
-////            module.refreshECID()
-//        }
-//    }
-//
-//    func adobe_getNewECID() {
-//        if let module = modulesManager.getModule(forName: TealiumAdobeVisitorConstants.moduleName) as? AdobeVisitorServiceModule {
-//        //            module.refreshECID()
-//        }
-//    }
-//
-//    func adobe_getNewECIDAndLinkToIdentifier() {
-//        if let module = modulesManager.getModule(forName: TealiumAdobeVisitorConstants.moduleName) as? AdobeVisitorServiceModule {
-//        //            module.refreshECID()
-//        }
-//    }
 
 }
 

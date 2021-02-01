@@ -34,7 +34,7 @@ class TealiumHelper  {
                                    environment: "dev",
                                    dataSource: "test12",
                                    options: nil)
-        config.adobeExistingECID = "690123807842311696822835353724641694002"
+//        config.adobeExistingECID = "19910893462296524574275194865590659078"
         config.connectivityRefreshInterval = 5
         config.loggerType = .os
         config.logLevel = .info
@@ -67,7 +67,7 @@ class TealiumHelper  {
                 Collectors.Device,
                 Collectors.Location,
                 Collectors.VisitorService,
-//                Collectors.AdobeVisitorAPI
+                Collectors.AdobeVisitorAPI
             ]
         
             config.dispatchers = [
@@ -85,6 +85,7 @@ class TealiumHelper  {
             config.geofenceUrl = "https://tags.tiqcdn.com/dle/tealiummobile/location/geofences.json"
             config.desiredAccuracy = .best
             config.updateDistance = 100.0
+        config.adobeCustomVisitorId = "craig@craigrouse.com"
         #else
             config.collectors = [
                 Collectors.Lifecycle,
@@ -117,7 +118,9 @@ class TealiumHelper  {
             dataLayer.add(key: "test", value: 123, expiry: .session)
             dataLayer.delete(for: ["hello", "test"])
             dataLayer.add(key: "hello", value: "itsme", expiry: .afterCustom((.months, 1)))
-
+            
+//            self.tealium?.adobeVisitorAPI?.linkECIDToKnownIdentifier("craig@craigrouse.com")
+            
             #if os(iOS)
             teal.location?.requestAuthorization()
 
@@ -156,7 +159,7 @@ class TealiumHelper  {
     }
 
     func track(title: String, data: [String: Any]?) {
-        tealium?.adobeVisitor?.resetECID()
+//        tealium?.adobeVisitor?.resetECID()
         let dispatch = TealiumEvent(title, dataLayer: data)
         tealium?.track(dispatch)
     }

@@ -2,13 +2,12 @@
 //  AdobeECIDCodable.swift
 //  TealiumAdobeVisitorAPI
 //
-//  Created by Craig Rouse on 13/01/2021.
 //  Copyright © 2021 Tealium, Inc. All rights reserved.
 //
 
 import Foundation
 
-public struct AdobeExperienceCloudID: Codable {
+public struct AdobeVisitor: Codable {
     public var experienceCloudID: String?
     public var idSyncTTL: String?
     public var dcsRegion: String?
@@ -37,13 +36,13 @@ public struct AdobeExperienceCloudID: Codable {
         self.nextRefresh = nextRefresh
     }
     
-    static func initWithDictionary(_ dict: [String: Any]) -> AdobeExperienceCloudID? {
+    static func initWithDictionary(_ dict: [String: Any]) -> AdobeVisitor? {
         var adobeValues = [String: String]()
         for (key, value) in dict {
             adobeValues[key] = "\(value)"
         }
         let ecID = adobeValues[AdobeVisitorKeys.experienceCloudId.rawValue]
-        if ecID == "<null>" {
+        if ecID == "<null>" || ecID == nil {
             return nil
         }
         let idSyncTTL = adobeValues[AdobeVisitorKeys.idSyncTTL.rawValue]
@@ -51,7 +50,7 @@ public struct AdobeExperienceCloudID: Codable {
         let nextRefresh = getFutureDate(adding: idSyncTTL)
         let dcsRegion = adobeValues[AdobeVisitorKeys.region.rawValue]
         let blob = adobeValues[AdobeVisitorKeys.encryptedMetaData.rawValue]
-        return AdobeExperienceCloudID(experienceCloudID: ecID, idSyncTTL: idSyncTTL, dcsRegion: dcsRegion, blob: blob, nextRefresh: nextRefresh)
+        return AdobeVisitor(experienceCloudID: ecID, idSyncTTL: idSyncTTL, dcsRegion: dcsRegion, blob: blob, nextRefresh: nextRefresh)
     }
     
     static func getFutureDate(adding ttlSeconds: String?) -> Date? {

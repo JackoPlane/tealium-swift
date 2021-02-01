@@ -2,14 +2,13 @@
 //  AdobeVisitorModule.swift
 //  tealium-swift
 //
-//  Created by Craig Rouse on 13/01/2021.
 //  Copyright © 2021 Tealium, Inc. All rights reserved.
 //
 
 import Foundation
 import TealiumCore
 
-public protocol Retryable {
+protocol Retryable {
     init(queue: DispatchQueue,
          delay: TimeInterval?)
     func submit(completion: @escaping ()-> Void)
@@ -34,18 +33,17 @@ class RetryManager: Retryable {
     }
 }
 
-public class TealiumAdobeVisitorAPI: Collector {
+public class TealiumAdobeVisitorModule: Collector {
 
-    
-    public var id = "TealiumAdobeVisitorAPI"
+    public var id = "TealiumAdobeVisitorModule"
     
     public var config: TealiumConfig
     
-    public var diskStorage: TealiumDiskStorageProtocol?
+    var diskStorage: TealiumDiskStorageProtocol?
     
     public var data: [String : Any]? {
         get {
-            if let ecID = ecID?.experienceCloudID {
+            if let ecID = visitor?.experienceCloudID {
                 return [TealiumAdobeVisitorConstants.adobeEcid: ecID]
             } else {
                 return nil
@@ -53,13 +51,13 @@ public class TealiumAdobeVisitorAPI: Collector {
         }
     }
     
-    var ecID: AdobeExperienceCloudID? {
+    public var visitor: AdobeVisitor? {
         willSet {
             if newValue == nil {
                 diskStorage?.delete(completion: nil)
             } else if newValue?.isEmpty == false {
                 diskStorage?.save(newValue, completion: nil)
-                delegate?.requestDequeue(reason: "Adobe Visitor ID Retrieved Successfully")
+                delegate?.requestDequeue(reason: AdobeVisitorModuleConstants.successMessage)
             }
         }
     }
@@ -68,7 +66,7 @@ public class TealiumAdobeVisitorAPI: Collector {
     
     var error: Error? {
         willSet {
-            delegate?.requestDequeue(reason: "Adobe Visitor ID suffered unrecoverable error")
+            delegate?.requestDequeue(reason: AdobeVisitorModuleConstants.failureMessage)
         }
     }
     
@@ -96,18 +94,20 @@ public class TealiumAdobeVisitorAPI: Collector {
         self.config = context.config
         self.delegate = delegate
         guard let orgId = config.adobeOrgId else {
-            completion((.failure(AdobeVisitorError.missingOrgID), ["adobe_error":"Org ID Not Set. ECID will be missing from track requests"]))
+            completion((.failure(AdobeVisitorError.missingOrgID), [AdobeVisitorModuleKeys.error:AdobeVisitorModuleConstants.missingOrgId]))
             return
         }
-        self.diskStorage = diskStorage ?? TealiumDiskStorage(config: config, forModule: "adobevisitor")
+        self.diskStorage = diskStorage ?? TealiumDiskStorage(config: config, forModule: self.id)
         self.orgId = orgId
-        visitorAPI = adobeVisitorAPI ?? AdobeVisitorAPI(adobeOrgId: orgId, enableCookies: true)
+        visitorAPI = adobeVisitorAPI ?? AdobeVisitorAPI(adobeOrgId: orgId, enableCookies: false)
         if let existingId = config.adobeExistingECID {
-            self.ecID = AdobeExperienceCloudID(experienceCloudID: existingId, idSyncTTL: nil, dcsRegion: nil, blob: nil, nextRefresh: nil)
-            refreshECID(ecID: ecID)
+            self.visitor = AdobeVisitor(experienceCloudID: existingId, idSyncTTL: nil, dcsRegion: nil, blob: nil, nextRefresh: nil)
+            self.visitorAPI?.experienceCloudId = visitor
+            refreshECID(ecID: visitor)
         }
         if let ecID = getECIDFromDisk() {
-            self.ecID = ecID
+            self.visitor = ecID
+            self.visitorAPI?.experienceCloudId = visitor
             if let adobeCustomVisitorId = config.adobeCustomVisitorId {
                 linkECIDToKnownIdentifier(knownId: adobeCustomVisitorId)
             }
@@ -120,22 +120,15 @@ public class TealiumAdobeVisitorAPI: Collector {
         }
     }
     
-    func getECIDFromDisk() -> AdobeExperienceCloudID? {
-        if let ecID = diskStorage?.retrieve(as: AdobeExperienceCloudID.self), !ecID.isEmpty {
-            delegate?.requestDequeue(reason: "Adobe Visitor ID Retrieved Successfully")
+    func getECIDFromDisk() -> AdobeVisitor? {
+        if let ecID = diskStorage?.retrieve(as: AdobeVisitor.self), !ecID.isEmpty {
+            delegate?.requestDequeue(reason: AdobeVisitorModuleConstants.successMessage)
             if let nextRefresh = ecID.nextRefresh, Date() >= nextRefresh || ecID.nextRefresh == nil {
                 refreshECID(ecID: ecID)
             }
             return ecID
         }
         return nil
-    }
-    
-    /// Resets the Adobe Experience Cloud ID. A new ID will be requested on any subsequent track calls
-    public func resetECID() {
-        self.ecID = nil
-        visitorAPI?.resetSession()
-        getECID()
     }
     
     /// Retrieves a new ECID from the Adobe Visitor API
@@ -146,7 +139,9 @@ public class TealiumAdobeVisitorAPI: Collector {
         visitorAPI.getNewECID { result in
             switch result {
             case .success(let ecID):
-                self.ecID = ecID
+                if ecID != nil {
+                    self.visitor = ecID
+                }
             case .failure(let error):
                 if retries < self.config.adobeRetries {
                     self.retryManager.submit {
@@ -169,7 +164,9 @@ public class TealiumAdobeVisitorAPI: Collector {
         visitorAPI.getNewECIDAndLink(customVisitorId: customVisitorId, dataProviderId: dpId, authState: authState) { result in
             switch result {
             case .success(let ecID):
-                self.ecID = ecID
+                if ecID != nil {
+                    self.visitor = ecID
+                }
             case .failure(let error):
                 if retries < self.config.adobeRetries {
                     self.retryManager.submit {
@@ -182,12 +179,12 @@ public class TealiumAdobeVisitorAPI: Collector {
         }
     }
     
-    public func linkECIDToKnownIdentifier (knownId: String,
-                                           retries: Int = 0) {
+    func linkECIDToKnownIdentifier(knownId: String,
+                                   retries: Int = 0) {
         guard let visitorAPI = visitorAPI else {
             return
         }
-        guard let experienceCloudId = self.ecID?.experienceCloudID else {
+        guard let experienceCloudId = self.visitor?.experienceCloudID else {
             getAndLink(customVisitorId: knownId, dpId: dpId, authState: config.adobeAuthState)
             return
         }
@@ -195,7 +192,9 @@ public class TealiumAdobeVisitorAPI: Collector {
         visitorAPI.linkExistingECIDToKnownIdentifier(customVisitorId: knownId, dataProviderID: dpId, experienceCloudId: experienceCloudId, authState: config.adobeAuthState) { result in
             switch result {
             case .success(let ecID):
-                 self.ecID = ecID
+                if ecID != nil {
+                    self.visitor = ecID
+                }
             case .failure(let error):
                 if retries < self.config.adobeRetries {
                     self.retryManager.submit {
@@ -209,15 +208,18 @@ public class TealiumAdobeVisitorAPI: Collector {
     }
     
     /// Sends a refresh request to the Adobe Visitor API. Used if the TTL has expired.
-    public func refreshECID(retries: Int = 0,
-                            ecID: AdobeExperienceCloudID?) {
-        guard let visitorAPI = visitorAPI, let existingECID = ecID?.experienceCloudID else {
+    func refreshECID(retries: Int = 0,
+                            ecID: AdobeVisitor?) {
+        guard let visitorAPI = visitorAPI,
+              let existingECID = ecID?.experienceCloudID else {
             return
         }
         visitorAPI.refreshECID(existingECID: existingECID) { result in
             switch result {
             case .success(let ecID):
-                self.ecID = ecID
+                if ecID != nil {
+                    self.visitor = ecID
+                }
             case .failure(let error):
                 if retries < self.config.adobeRetries {
                     self.retryManager.submit {
@@ -231,13 +233,33 @@ public class TealiumAdobeVisitorAPI: Collector {
     }
 }
 
-extension TealiumAdobeVisitorAPI: DispatchValidator {
+// Public API methods
+public extension TealiumAdobeVisitorModule {
+    /// Links a known visitor ID to an ECID
+    /// - Parameters:
+    /// - knownId: `String` containing the custom visitor ID (e.g. email address or other known visitor ID)
+    func linkECIDToKnownIdentifier(_ knownId: String) {
+        linkECIDToKnownIdentifier(knownId: knownId)
+    }
+    
+    /// Resets the Adobe Experience Cloud ID. A new ID will be requested on any subsequent track calls
+    func resetECID() {
+        self.visitor = nil
+        self.visitorAPI?.experienceCloudId = nil
+        visitorAPI?.resetSession()
+        getECID()
+    }
+    
+}
+
+
+extension TealiumAdobeVisitorModule: DispatchValidator {
     public func shouldQueue(request: TealiumRequest) -> (Bool, [String : Any]?) {
         guard orgId != nil else {
-            return (false, ["adobe_error":"Org ID Not Set. ECID will be missing from track requests"])
+            return (false, [AdobeVisitorModuleKeys.error: AdobeVisitorModuleConstants.missingOrgId])
         }
         if let error = error {
-            return (false, ["adobe_error":"Unrecoverable error: \(error.localizedDescription)"])
+            return (false, [AdobeVisitorModuleKeys.error:"Unrecoverable error: \(error.localizedDescription)"])
         }
         guard let data = self.data else {
             return (true, [TealiumKey.queueReason: AdobeVisitorError.missingExperienceCloudID.localizedDescription])

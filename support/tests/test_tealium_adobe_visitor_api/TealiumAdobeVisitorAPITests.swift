@@ -2,7 +2,6 @@
 //  TealiumAdobeVisitorAPITests.swift
 //  TealiumAdobeVisitorAPITests
 //
-//  Created by Craig Rouse on 13/01/2021.
 //  Copyright © 2021 Tealium, Inc. All rights reserved.
 //
 
@@ -114,7 +113,7 @@ class TealiumAdobeVisitorAPITests: XCTestCase {
         adobeVisitorAPI.getNewECID() { result in
             switch result {
             case .success(let result):
-                XCTAssertEqual(result.experienceCloudID, AdobeVisitorAPITestHelpers.ecID, "Unexpected mismatch in Adobe ECIDs")
+                XCTAssertEqual(result?.experienceCloudID, AdobeVisitorAPITestHelpers.ecID, "Unexpected mismatch in Adobe ECIDs")
                 expectation.fulfill()
             case .failure:
                 XCTFail("Unexpected failure when retrieving ECID")

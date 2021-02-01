@@ -2,7 +2,6 @@
 //  AdobeVisitorAPI.swift
 //  TealiumAdobeVisitorAPI
 //
-//  Created by Craig Rouse on 13/01/2021.
 //  Copyright © 2021 Tealium, Inc. All rights reserved.
 //
 
@@ -21,12 +20,14 @@
 
 import Foundation
 
-public typealias AdobeResult = Result<AdobeExperienceCloudID, Error>
+public typealias AdobeResult = Result<AdobeVisitor?, Error>
 
 public typealias AdobeCompletion = ((AdobeResult) -> Void)
 
 
 public protocol AdobeExperienceCloudIDService {
+    var experienceCloudId: AdobeVisitor? { get set }
+    
     func getNewECID(completion: @escaping AdobeCompletion)
     
     func getNewECIDAndLink(customVisitorId: String,
@@ -50,7 +51,7 @@ public protocol AdobeExperienceCloudIDService {
 
 public class AdobeVisitorAPI: AdobeExperienceCloudIDService {
 
-    var experienceCloudId: AdobeExperienceCloudID?
+    public var experienceCloudId: AdobeVisitor?
     var networkSession: NetworkSession
     var adobeOrgId: String
 
@@ -58,10 +59,12 @@ public class AdobeVisitorAPI: AdobeExperienceCloudIDService {
     /// - networkSession: `NetworkSession` to use for all network requests. Used for unit testing. Defaults to `URLSession.shared`
     /// - adobeOrgId: `String` representing the Adobe Org ID, including the `@AdobeOrg` suffix
     public init(networkSession: NetworkSession = URLSession.shared,
-                adobeOrgId: String) {
+                adobeOrgId: String,
+                existingVisitor: AdobeVisitor? = nil) {
         if let urlSession = networkSession as? URLSession {
             urlSession.configuration.httpCookieStorage = nil
         }
+        self.experienceCloudId = existingVisitor
         self.adobeOrgId = adobeOrgId
         self.networkSession = networkSession
     }
@@ -107,13 +110,15 @@ public class AdobeVisitorAPI: AdobeExperienceCloudIDService {
             switch result {
             case .success((_, let data)):
                 if let json = try? JSONSerialization.jsonObject(with: data, options: []) as? [String: Any],
-                   let adobeValues = AdobeExperienceCloudID.initWithDictionary(self.removeExtraKeys(json)) {
-                    completion?(AdobeResult.success(adobeValues))
+                   let adobeValues = AdobeVisitor.initWithDictionary(self.removeExtraKeys(json)) {
+                    completion?(.success(adobeValues))
+                } else if let ecID = self.experienceCloudId {
+                    completion?(.success(ecID))
                 } else {
-                    completion?(AdobeResult.failure(AdobeVisitorError.invalidJSON))
+                    completion?(.failure(AdobeVisitorError.invalidJSON))
                 }
             case .failure(let error):
-                completion?(AdobeResult.failure(error))
+                completion?(.failure(error))
             }
 
         }
@@ -222,12 +227,13 @@ public class AdobeVisitorAPI: AdobeExperienceCloudIDService {
                 switch result {
                 case .success (var ECID):
                     // ensure ECID is always present in response
-                    if ECID.experienceCloudID == nil {
-                        ECID.experienceCloudID = experienceCloudId
+                    if ECID?.experienceCloudID == nil {
+                        ECID?.experienceCloudID = experienceCloudId
                     }
-                    completion?(AdobeResult.success(ECID))
-                case .failure (let error):
-                    completion?(AdobeResult.failure(error))
+                    completion?(.success(ECID))
+                case .failure:
+                    // although the call failed, this is ok, as we already have a known ECID, but no new ECID was returned
+                    completion?(.success(self.experienceCloudId))
                 }
             }
         }
@@ -248,8 +254,8 @@ public class AdobeVisitorAPI: AdobeExperienceCloudIDService {
             getNewECID { result in
                 switch result {
                 case .success(let result):
-                    guard let experienceCloudID = result.experienceCloudID  else {
-                        completion?(AdobeResult.failure(AdobeVisitorError.missingExperienceCloudID))
+                    guard let experienceCloudID = result?.experienceCloudID  else {
+                        completion?(.failure(AdobeVisitorError.missingExperienceCloudID))
                         return
                     }
                     self.linkExistingECIDToKnownIdentifier(customVisitorId: customVisitorId,
@@ -258,13 +264,13 @@ public class AdobeVisitorAPI: AdobeExperienceCloudIDService {
                                                                authState: authState) { result in
                         switch result {
                         case .success (let ECID):
-                            completion?(AdobeResult.success(ECID))
+                            completion?(.success(ECID))
                         case .failure (let error):
-                            completion?(AdobeResult.failure(error))
+                            completion?(.failure(error))
                         }
                     }
                 case .failure(let error):
-                    completion?(AdobeResult.failure(error))
+                    completion?(.failure(error))
                 }
             }
     }

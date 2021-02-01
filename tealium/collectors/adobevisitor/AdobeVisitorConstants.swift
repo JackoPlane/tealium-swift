@@ -2,7 +2,6 @@
 //  AdobeVisitorConstants.swift
 //  TealiumAdobeVisitorAPI
 //
-//  Created by Craig Rouse on 13/01/2021.
 //  Copyright © 2021 Tealium, Inc. All rights reserved.
 //
 
@@ -46,8 +45,29 @@ enum AdobeStringConstants: String {
     case defaultAdobeURL = "https://dpm.demdex.net/id"
 }
 
-public enum AdobeVisitorError: Error {
+public enum AdobeVisitorError: Error, LocalizedError {
     case missingExperienceCloudID
     case missingOrgID
     case invalidJSON
+    
+    public var localizedDescription: String {
+        switch self {
+        case .missingExperienceCloudID:
+            return NSLocalizedString("Adobe Experience Cloud ID not available", comment: "missingExperienceCloudID")
+        case .invalidJSON:
+            return NSLocalizedString("Adobe Experience Cloud ID service returned invalid JSON", comment: "invalidJSON")
+        case .missingOrgID:
+            return NSLocalizedString("Adobe Org ID missing", comment: "missingOrgID")
+        }
+    }
+}
+
+enum AdobeVisitorModuleKeys {
+    static let error = "adobe_error"
+}
+
+enum AdobeVisitorModuleConstants {
+    static let successMessage = "Adobe Visitor ID Retrieved Successfully"
+    static let missingOrgId = "Org ID Not Set. ECID will be missing from track requests"
+    static let failureMessage = "Adobe Visitor ID suffered unrecoverable error"
 }
