@@ -24,6 +24,7 @@ class AdobeVisitorModuleTests: XCTestCase {
             return config
         }
     }
+    
     static var testConfigNoOrgId: TealiumConfig {
         get {
             let config = TealiumConfig(account: "tealiummobile", profile: "demo", environment: "dev")
@@ -54,14 +55,6 @@ class AdobeVisitorModuleTests: XCTestCase {
                 completion()
             }
         }
-    }
-    
-    override func setUpWithError() throws {
-        // Put setup code here. This method is called before the invocation of each test method in the class.
-    }
-
-    override func tearDownWithError() throws {
-        // Put teardown code here. This method is called after the invocation of each test method in the class.
     }
 
     func testShouldQueueReturnsTrueWhenECIDIsMissing() {
@@ -102,22 +95,6 @@ class AdobeVisitorModuleTests: XCTestCase {
         module.visitor = AdobeVisitor(experienceCloudID: nil, idSyncTTL: "1", dcsRegion: "1", blob: "1", nextRefresh: Date())
         let request = TealiumTrackRequest(data: [:])
         XCTAssertTrue(module.shouldQueue(request: request).0)
-    }
-    
-    func testRetryOnAPIError() {
-        
-    }
-    
-    func testDequeueAfterMaxRetriesOnAPIError() {
-        
-    }
-    
-    func testCollectorReturnsExpectedData() {
-        
-    }
-    
-    func testGetNewIDOnInit() {
-        
     }
     
     func testShouldPurgeAlwaysReturnsFalse() {
@@ -182,25 +159,14 @@ class AdobeVisitorModuleTests: XCTestCase {
         }
     }
     
-    func testLinkToKnownIdentifier() {
-        
-    }
-    
     func testExistingECIDUsedOnFailure() {
         let expectation = self.expectation(description: "failure")
         let config = AdobeVisitorModuleTests.testConfig.copy
         let context = TealiumContext(config: config, dataLayer: AdobeVisitorModuleTests.dataLayer, tealium: AdobeVisitorModuleTests.tealium)
         
-//        let module = TealiumAdobeVisitorAPI(context: context, delegate: nil, diskStorage: MockAdobeVisitorDiskStoragePopulated(), adobeVisitorAPI: mockVisitorAPIFailure) { _, _ in
-//
-//        }
-        
-        
         let module = TealiumAdobeVisitorModule(context: context, delegate: nil, diskStorage: MockAdobeVisitorDiskStoragePopulated(), retryManager: TestRetryManager(queue: DispatchQueue(label: "test"), delay: nil), adobeVisitorAPI: MockVisitorAPIRefreshFailure(expectation: expectation, count: 5)) { _, _ in
             
         }
-        
-//        let shouldQueue = module.shouldQueue(request: TealiumTrackRequest(data: [:]))
 
         waitForExpectations(timeout: 10.0) { error in
             XCTAssertEqual(module.visitor!.experienceCloudID, AdobeVisitorAPITestHelpers.ecID)
@@ -209,11 +175,6 @@ class AdobeVisitorModuleTests: XCTestCase {
         }
     }
     
-    func testNewECIDRequestedOnInvalidResponse() {
-        
-    }
-    
-    /// came through as <null> when invalid response received
     func testECIDNotNullOnInvalidResponse() {
         let config = AdobeVisitorModuleTests.testConfig.copy
         let context = TealiumContext(config: config, dataLayer: AdobeVisitorModuleTests.dataLayer, tealium: AdobeVisitorModuleTests.tealium)
@@ -249,26 +210,10 @@ class AdobeVisitorModuleTests: XCTestCase {
 
         }
         
-        
-        
         waitForExpectations(timeout: 10.0) { error in
             XCTAssertEqual(module.error as? AdobeVisitorError, AdobeVisitorError.invalidJSON)
         
         }
-        
-        
-    }
-    
-    func testGetAndLinkOnSuccess() {
-//        let config = AdobeVisitorModuleTests.testConfig.copy
-//        let context = TealiumContext(config: config, dataLayer: AdobeVisitorModuleTests.dataLayer, tealium: AdobeVisitorModuleTests.tealium)
-//
-//        let module = TealiumAdobeVisitorAPI(context: context, delegate: nil, diskStorage: nil, retryManager: TestRetryManager(queue: DispatchQueue(label: "test"), delay: nil), adobeVisitorAPI: mockVisitorAPISuccess) { _, _ in
-//
-//        }
-//
-//        module.getECID()
-//        XCTAssertEqual(module.visitor!.experienceCloudID!, AdobeVisitorAPITestHelpers.ecID)
     }
     
     func testDataNotReturnedIfECIDMissing() {
