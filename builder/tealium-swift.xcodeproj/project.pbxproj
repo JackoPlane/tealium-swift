@@ -1642,7 +1642,6 @@
 		D7D0323825AF12EA00473C38 /* TealiumAdobeVisitorAPI.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = TealiumAdobeVisitorAPI.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		D7D0335625AF147900473C38 /* TealiumAdobeVisitorAPITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = TealiumAdobeVisitorAPITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		D7D0335825AF147900473C38 /* TealiumAdobeVisitorAPITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TealiumAdobeVisitorAPITests.swift; sourceTree = "<group>"; };
-		D7D0335A25AF147900473C38 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		D7D0343325AF17FC00473C38 /* AdobeVisitorAPI.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AdobeVisitorAPI.swift; sourceTree = "<group>"; };
 		D7D0345725AF182E00473C38 /* AdobeUtils.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AdobeUtils.swift; sourceTree = "<group>"; };
 		D7D0347B25AF187300473C38 /* AdobeVisitorConstants.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AdobeVisitorConstants.swift; sourceTree = "<group>"; };
@@ -2745,7 +2744,6 @@
 			isa = PBXGroup;
 			children = (
 				D7D0335825AF147900473C38 /* TealiumAdobeVisitorAPITests.swift */,
-				D7D0335A25AF147900473C38 /* Info.plist */,
 				D719EA9525B70AB4004DB5E2 /* AdobeVisitorModuleTests.swift */,
 			);
 			path = test_tealium_adobe_visitor_api;
