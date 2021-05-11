@@ -6,6 +6,7 @@
 //
 
 import Foundation
+import OSLog
 #if canImport(SwiftUI)
 import SwiftUI
 
@@ -35,10 +36,16 @@ public struct TealiumAppTrackable<Content: View>: View {
     }
     
     private func postNotification(url: URL) {
-        let notification = Notification(name: Notification.Name(rawValue: TealiumValue.deepLinkNotificationName),
-                                        object: nil,
-                                        userInfo: [TealiumKey.deepLinkURL: url])
-        NotificationCenter.default.post(notification)
+//        let notification = Notification(name: Notification.Name(rawValue: TealiumValue.deepLinkNotificationName),
+//                                        object: nil,
+//                                        userInfo: [TealiumKey.deepLinkURL: url])
+//        TealiumQueues.mainQueue.asyncAfter(deadline: .now() + 0.3) {
+//            NotificationCenter.default.post(notification)
+//        }
+        
+        let message = Message(topic: .deepLink, payload: [TealiumKey.deepLinkURL: url], expires: DispatchTime.now() + 10.0)
+        
+        MessageQueue.publish(message)
     }
 }
 #endif

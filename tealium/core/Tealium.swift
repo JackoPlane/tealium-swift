@@ -19,6 +19,8 @@ public class Tealium {
     public var migrator: Migratable
     private var token: NotificationToken?
 
+    static var pubSub = MessageQueue()
+    
     /// Initializer.
     ///
     /// - Parameter config: `TealiumConfig` Object created with Tealium account, profile, environment, optional loglevel)
@@ -45,15 +47,17 @@ public class Tealium {
             TealiumDelegateProxy.setup(context: context)
         }
         #endif
-        enableNotifications()
+//        Tealium.pubSub.subscribe(subscriber: self)
         TealiumQueues.backgroundSerialQueue.async { [weak self] in
             guard let self = self else {
                 return
             }
             self.zz_internal_modulesManager = modulesManager ?? ModulesManager(context)
         }
-
         TealiumInstanceManager.shared.addInstance(self, config: config)
+        TealiumQueues.backgroundSerialQueue.asyncAfter(deadline: .now() + 1.0) {
+            self.subscribeToNotifications()
+        }
     }
 
     /// - Parameter config: `TealiumConfig` Object created with Tealium account, profile, environment, optional loglevel)
@@ -94,15 +98,13 @@ public class Tealium {
         }
     }
     
-    func enableNotifications() {
-        let viewName = Notification.Name(rawValue: TealiumValue.deepLinkNotificationName)
-        let token = NotificationCenter.default.addObserver(forName: viewName, object: nil, queue: nil) { [weak self] notification in
-            guard let deepLink = notification.userInfo?[TealiumKey.deepLinkURL] as? URL, let self = self else {
-                return
+    func subscribeToNotifications() {
+        MessageQueue.subscribe(topic: .deepLink, identifier: "core") {
+            guard let deepLink = $0.payload[TealiumKey.deepLinkURL] as? URL else {
+                            return
             }
             self.handleDeepLink(deepLink)
         }
-        self.token = NotificationToken(token: token)
     }
 
     deinit {

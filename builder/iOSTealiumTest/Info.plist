@@ -22,7 +22,7 @@
 			<key>CFBundleTypeRole</key>
 			<string>None</string>
 			<key>CFBundleURLName</key>
-			<string>com.tealium.iOSTealiumTest</string>
+			<string>com.tealium.iOSTealiumTest1</string>
 			<key>CFBundleURLSchemes</key>
 			<array>
 				<string>iostealiumtest</string>
