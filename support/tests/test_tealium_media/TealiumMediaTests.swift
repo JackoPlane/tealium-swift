@@ -16,7 +16,7 @@ class TealiumMediaTests: XCTestCase {
     var tealium: Tealium?
     
     override func setUpWithError() throws {
-        session = SignificantEventMediaSession(with: mockMediaService)
+        session = FullPlaybackMediaSession(with: mockMediaService)
     }
     
     override func tearDownWithError() throws { }
@@ -34,7 +34,7 @@ class TealiumMediaTests: XCTestCase {
         
         let session = module.createSession(from: MediaContent(name: "test", streamType: .aod, mediaType: .video, qoe: QoE(bitrate: 1000)))
         
-        guard let _ = session as? SignificantEventMediaSession else {
+        guard let _ = session as? FullPlaybackMediaSession else {
             XCTFail("createSession failed")
             return
         }
@@ -52,7 +52,7 @@ class TealiumMediaTests: XCTestCase {
         
         let session = module.createSession(from: MediaContent(name: "test", streamType: .aod, mediaType: .video, qoe: QoE(bitrate: 1000)))
         
-        guard let _ = session as? SignificantEventMediaSession else {
+        guard let _ = session as? FullPlaybackMediaSession else {
             XCTFail("createSession failed")
             return
         }
@@ -61,16 +61,16 @@ class TealiumMediaTests: XCTestCase {
     }
     
     func testMediaSessionFactory_CreatesCorrectTypes() {
-        session.mediaService?.media.trackingType = .significant
-        let significant = MediaSessionFactory.create(from: session.mediaService!.media, with: MockModuleDelegate())
-        guard let _ = significant as? SignificantEventMediaSession else {
+        session.mediaService?.media.trackingType = .fullPlayback
+        let full = MediaSessionFactory.create(from: session.mediaService!.media, with: MockModuleDelegate())
+        guard let _ = full as? FullPlaybackMediaSession else {
             XCTFail("Incorrect Type Created in Factory")
             return
         }
         
-        session.mediaService?.media.trackingType = .heartbeat
-        let heartbeat = MediaSessionFactory.create(from: session.mediaService!.media, with: MockModuleDelegate())
-        guard let _ = heartbeat as? HeartbeatMediaSession else {
+        session.mediaService?.media.trackingType = .interval
+        let interval = MediaSessionFactory.create(from: session.mediaService!.media, with: MockModuleDelegate())
+        guard let _ = interval as? IntervalMediaSession else {
             XCTFail("Incorrect Type Created in Factory")
             return
         }
@@ -82,9 +82,9 @@ class TealiumMediaTests: XCTestCase {
             return
         }
         
-        session.mediaService?.media.trackingType = .heartbeatMilestone
+        session.mediaService?.media.trackingType = .intervalMilestone
         let hbMilestone = MediaSessionFactory.create(from: session.mediaService!.media, with: MockModuleDelegate())
-        guard let _ = hbMilestone as? HeartbeatMilestoneMediaSession else {
+        guard let _ = hbMilestone as? IntervalMilestoneMediaSession else {
             XCTFail("Incorrect Type Created in Factory")
             return
         }
@@ -596,93 +596,93 @@ class TealiumMediaTests: XCTestCase {
         XCTAssertNil(actual)
     }
     
-    // MARK: Tracking Types - Significant
-    func testSignificantEvents_TrackingType_DoesNotSendHeartbeat() {
+    // MARK: Tracking Types - full
+    func testfullEvents_TrackingType_DoesNotSendinterval() {
         session.startSession()
         session.play()
         session.endContent()
-        XCTAssertEqual(mockMediaService.standardEventCounts[.heartbeat], 0)
+        XCTAssertEqual(mockMediaService.standardEventCounts[.interval], 0)
     }
     
-    func testSignificantEvents_TrackingType_DoesNotSendMilestone() {
+    func testfullEvents_TrackingType_DoesNotSendMilestone() {
         session.startSession()
         session.play()
         session.endContent()
         XCTAssertEqual(mockMediaService.standardEventCounts[.milestone], 0)
     }
     
-    func testSignificantEvents_TrackingType_DoesNotSendSummary() {
+    func testfullEvents_TrackingType_DoesNotSendSummary() {
         session.startSession()
         session.play()
         session.endContent()
         XCTAssertEqual(mockMediaService.standardEventCounts[.summary], 0)
     }
     
-    // MARK: Tracking Types - Heartbeat
-    func testHeartbeatManualPing_CallsTrack() {
-        session = HeartbeatMediaSession(with: mockMediaService)
+    // MARK: Tracking Types - interval
+    func testintervalManualPing_CallsTrack() {
+        session = IntervalMediaSession(with: mockMediaService)
         session.startSession()
         session.ping()
-        XCTAssertEqual(mockMediaService.standardEventCounts[.heartbeat], 1)
+        XCTAssertEqual(mockMediaService.standardEventCounts[.interval], 1)
     }
     
-    func testHeartbeatPlau_SetsTimerEventHandler() {
+    func testintervalPlau_SetsTimerEventHandler() {
         let timer = MockRepeatingTimer()
-        session = HeartbeatMediaSession(with: mockMediaService, timer)
+        session = IntervalMediaSession(with: mockMediaService, timer)
         session.play()
         XCTAssertNotNil(timer.eventHandler)
     }
     
-    func testHeartbeatStartSession_CallsSuperTrack() {
-        session = HeartbeatMediaSession(with: mockMediaService)
+    func testintervalStartSession_CallsSuperTrack() {
+        session = IntervalMediaSession(with: mockMediaService)
         session.startSession()
         XCTAssertEqual(mockMediaService.standardEventCounts[.sessionStart], 1)
     }
     
-    func testHeartbeatPlay_CallsTimerResume() {
+    func testintervalPlay_CallsTimerResume() {
         let timer = MockRepeatingTimer()
-        session = HeartbeatMediaSession(with: mockMediaService, timer)
+        session = IntervalMediaSession(with: mockMediaService, timer)
         session.play()
         XCTAssertEqual(timer.resumCount, 1)
     }
     
-    func testHeartbeatEndSession_CallsSuperTrack() {
-        session = HeartbeatMediaSession(with: mockMediaService)
+    func testintervalEndSession_CallsSuperTrack() {
+        session = IntervalMediaSession(with: mockMediaService)
         session.endSession()
         XCTAssertEqual(mockMediaService.standardEventCounts[.sessionEnd], 1)
     }
     
-    func testHeartbeatStopPing_CallsTimerSuspend() {
+    func testintervalStopPing_CallsTimerSuspend() {
         let timer = MockRepeatingTimer()
-        session = HeartbeatMediaSession(with: mockMediaService, timer)
+        session = IntervalMediaSession(with: mockMediaService, timer)
         session.stopPing()
         XCTAssertEqual(timer.suspendCount, 1)
     }
     
-    func testHeartbeatPause_CallsTimerSuspend() {
+    func testintervalPause_CallsTimerSuspend() {
         let timer = MockRepeatingTimer()
-        session = HeartbeatMediaSession(with: mockMediaService, timer)
+        session = IntervalMediaSession(with: mockMediaService, timer)
         session.pause()
         XCTAssertEqual(timer.suspendCount, 1)
     }
     
-    func testHeartbeatEndContent_CallsTimerSuspend() {
+    func testintervalEndContent_CallsTimerSuspend() {
         let timer = MockRepeatingTimer()
-        session = HeartbeatMediaSession(with: mockMediaService, timer)
+        session = IntervalMediaSession(with: mockMediaService, timer)
         session.endContent()
         XCTAssertEqual(timer.suspendCount, 1)
     }
     
-    func testHeartbeatEndSession_CallsTimerSuspend() {
+    func testintervalEndSession_CallsTimerSuspend() {
         let timer = MockRepeatingTimer()
-        session = HeartbeatMediaSession(with: mockMediaService, timer)
+        session = IntervalMediaSession(with: mockMediaService, timer)
         session.endSession()
         XCTAssertEqual(timer.suspendCount, 1)
     }
         
-    func testHeartbeatDeinit_CallsTimerSuspend() {
+    func testintervalDeinit_CallsTimerSuspend() {
         let timer = MockRepeatingTimer()
-        session = HeartbeatMediaSession(with: mockMediaService, timer)
+        session = IntervalMediaSession(with: mockMediaService, timer)
         session.startSession()
         session = nil
         XCTAssertEqual(timer.suspendCount, 1)
@@ -855,33 +855,33 @@ class TealiumMediaTests: XCTestCase {
         }
     }
     
-    // MARK: Tracking Types - Heartbeat + Milestone
-    func testPing_CallsTrackWithHeartbeat_EveryTenthSecond() {
+    // MARK: Tracking Types - interval + Milestone
+    func testPing_CallsTrackWithinterval_EveryTenthSecond() {
         mockMediaService.media.duration = 130
         mockMediaService.media.startTime = TimeTraveler().travel(by: -20)
-        session = HeartbeatMilestoneMediaSession(with: mockMediaService, interval: 1.0)
+        session = IntervalMilestoneMediaSession(with: mockMediaService, interval: 1.0)
         session.ping()
-        XCTAssertEqual(mockMediaService.standardEventCounts[.heartbeat], 1)
+        XCTAssertEqual(mockMediaService.standardEventCounts[.interval], 1)
         XCTAssertEqual(mockMediaService.standardEventCounts[.milestone], 0)
     }
     
-    func testPing_CallsTrack_WithHeartbeatAndMilestone() {
+    func testPing_CallsTrack_WithintervalAndMilestone() {
         mockMediaService.media.duration = 100
         mockMediaService.media.startTime = TimeTraveler().travel(by: -10)
-        session = HeartbeatMilestoneMediaSession(with: mockMediaService, interval: 1.0)
+        session = IntervalMilestoneMediaSession(with: mockMediaService, interval: 1.0)
         session.ping()
-        XCTAssertEqual(mockMediaService.standardEventCounts[.heartbeat], 1)
+        XCTAssertEqual(mockMediaService.standardEventCounts[.interval], 1)
         XCTAssertEqual(mockMediaService.standardEventCounts[.milestone], 1)
         XCTAssertEqual(mockMediaService.media.milestone, "10%")
     }
     
-    func testPing_DoesNotCallTrack_WithHeartbeatAndMilestone() {
+    func testPing_DoesNotCallTrack_WithintervalAndMilestone() {
         mockMediaService.media.duration = 130
         mockMediaService.media.startTime = TimeTraveler().travel(by: -19.5)
-        session = HeartbeatMilestoneMediaSession(with: mockMediaService, interval: 1.0)
+        session = IntervalMilestoneMediaSession(with: mockMediaService, interval: 1.0)
         session.ping()
-        XCTAssertEqual(mockMediaService.standardEventCounts[.heartbeat], 0)
-        XCTAssertEqual(mockMediaService.standardEventCounts[.heartbeat], 0)
+        XCTAssertEqual(mockMediaService.standardEventCounts[.interval], 0)
+        XCTAssertEqual(mockMediaService.standardEventCounts[.interval], 0)
         XCTAssertNil(mockMediaService.media.milestone)
     }
     
@@ -1322,7 +1322,7 @@ class TealiumMediaTests: XCTestCase {
                                                             droppedFrames: 7,
                                                             playbackSpeed: 1.25,
                                                             metadata: ["custom_qoe_meta_key": "custom_qoe_meta_val"]),
-                                                   trackingType: .significant,
+                                                   trackingType: .fullPlayback,
                                                    state: .mute,
                                                    customId: "some id",
                                                    duration: 3000,
@@ -1338,7 +1338,7 @@ class TealiumMediaTests: XCTestCase {
             XCTAssertEqual(trackRequest.data["media_name"] as! String, "Media Vars")
             XCTAssertEqual(trackRequest.data["media_stream_type"] as! String, "podcast")
             XCTAssertEqual(trackRequest.data["media_type"] as! String, "audio")
-            XCTAssertEqual(trackRequest.data["media_tracking_type"] as! String, "significant")
+            XCTAssertEqual(trackRequest.data["media_tracking_type"] as! String, "full_playback")
             XCTAssertEqual(trackRequest.data["media_player_state"] as! String, "mute")
             XCTAssertEqual(trackRequest.data["media_custom_id"] as! String, "some id")
             XCTAssertEqual(trackRequest.data["media_duration"] as! Int, 3000)
@@ -1472,84 +1472,6 @@ class TealiumMediaTests: XCTestCase {
     }
     
     // MARK: Lifecycle Tests
-    func testSleep_Returns_WhenBackgroundMediaTrackingDisabled() {
-        #if !os(tvOS) && !os(macOS)
-        let config = TealiumConfig(account: "account",
-                                   profile: "profile",
-                                   environment: "env")
-        let tealium = Tealium(config: config)
-        let context = TealiumContext(config: config,
-                                      dataLayer: DummyDataManager(),
-                                      tealium: tealium)
-        let module = MediaModule(context: context, delegate: MockModuleDelegate(), diskStorage: nil) { _ in }
-        let session = HeartbeatMediaSession(with: mockMediaService)
-        session.backgroundStatusResumed = true
-        module.activeSessions = [session]
-        
-        module.sleep()
-        XCTAssertEqual(mockMediaService.standardEventCounts[.sessionEnd], 0)
-        XCTAssertTrue(session.backgroundStatusResumed)
-        #endif
-    }
-    
-    func testWake_Returns_WhenBackgroundMediaTrackingDisabled() {
-        #if !os(tvOS) && !os(macOS)
-        let config = TealiumConfig(account: "account",
-                                   profile: "profile",
-                                   environment: "env")
-        let tealium = Tealium(config: config)
-        let context = TealiumContext(config: config,
-                                      dataLayer: DummyDataManager(),
-                                      tealium: tealium)
-        let module = MediaModule(context: context, delegate: MockModuleDelegate(), diskStorage: nil) { _ in }
-        let session = HeartbeatMediaSession(with: mockMediaService)
-        module.activeSessions = [session]
-        
-        module.wake()
-        XCTAssertFalse(session.backgroundStatusResumed)
-        #endif
-    }
-    
-    func testSleep_SetsBackgroundResumedToFalse_WhenBackgroundMediaTrackingEnabled() {
-        #if !os(tvOS) && !os(macOS)
-        let config = TealiumConfig(account: "account",
-                                   profile: "profile",
-                                   environment: "env")
-        config.enableBackgroundMediaTracking = true
-        let tealium = Tealium(config: config)
-        let context = TealiumContext(config: config,
-                                      dataLayer: DummyDataManager(),
-                                      tealium: tealium)
-        let module = MediaModule(context: context, delegate: MockModuleDelegate(), diskStorage: nil) { _ in }
-        let session = HeartbeatMediaSession(with: mockMediaService)
-        session.backgroundStatusResumed = true
-        module.activeSessions = [session]
-        
-        module.sleep()
-        XCTAssertFalse(session.backgroundStatusResumed)
-        #endif
-    }
-    
-    func testWake_SetsBackgroundResumedToTrue_WhenBackgroundMediaTrackingEnabled() {
-        #if !os(tvOS) && !os(macOS)
-        let config = TealiumConfig(account: "account",
-                                   profile: "profile",
-                                   environment: "env")
-        config.enableBackgroundMediaTracking = true
-        let tealium = Tealium(config: config)
-        let context = TealiumContext(config: config,
-                                      dataLayer: DummyDataManager(),
-                                      tealium: tealium)
-        let module = MediaModule(context: context, delegate: MockModuleDelegate(), diskStorage: nil) { _ in }
-        let session = HeartbeatMediaSession(with: mockMediaService)
-        session.backgroundStatusResumed = false
-        module.activeSessions = [session]
-        
-        module.wake()
-        XCTAssertTrue(session.backgroundStatusResumed)
-        #endif
-    }
-    
     func testEnableBackgroundMediaTracking_IsDefault_WhenNotSet() {
         let config = TealiumConfig(account: "account",
                                    profile: "profile",

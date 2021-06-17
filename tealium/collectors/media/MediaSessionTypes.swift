@@ -10,9 +10,9 @@ import Foundation
 import TealiumCore
 #endif
 
-class SignificantEventMediaSession: MediaSession { }
+class FullPlaybackMediaSession: MediaSession { }
 
-class HeartbeatMediaSession: MediaSession {
+class IntervalMediaSession: MediaSession {
     
     private var timer: Repeater
     
@@ -22,12 +22,12 @@ class HeartbeatMediaSession: MediaSession {
         super.init(with: mediaService)
     }
     
-    /// Sends a heartbeat event
+    /// Sends a interval event
     override func ping() {
-        mediaService?.track(.event(.heartbeat))
+        mediaService?.track(.event(.interval))
     }
     
-    /// Cancels the heartbeat timer
+    /// Cancels the interval timer
     override func stopPing() {
         timer.suspend()
     }
@@ -64,12 +64,12 @@ class HeartbeatMediaSession: MediaSession {
 
 }
 
-class HeartbeatMilestoneMediaSession: MilestoneMediaSession {
+class IntervalMilestoneMediaSession: MilestoneMediaSession {
     
-    /// Adds a heartbeat ping every 10 seconds to the milestone tracking type
+    /// Adds a interval ping every 10 seconds to the milestone tracking type
     override func ping() {
         if Int(totalContentPlayed) % 10 == 0  {
-            mediaService?.track(.event(.heartbeat))
+            mediaService?.track(.event(.interval))
         }
         super.ping()
     }
